@@ -3,7 +3,7 @@ package com.github.vitkidd.geosearch.app
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.github.vitkidd.geosearch.R
-import com.github.vitkidd.geosearch.feature.MainFragment
+import com.github.vitkidd.geosearch.feature.presentation.ui.MainFragment
 
 class AppActivity : AppCompatActivity(R.layout.act_app) {
 
