@@ -8,9 +8,10 @@ import androidx.fragment.app.commitNow
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.vitkidd.geosearch.R
 import com.github.vitkidd.geosearch.databinding.FmtMainBinding
-import com.github.vitkidd.geosearch.entity.MapRegion
+import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LATITUDE
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LONGITUDE
+import com.github.vitkidd.geosearch.feature.presentation.model.MainViewState
 import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewModel
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMapOptions
@@ -30,7 +31,7 @@ class MainFragment : Fragment(R.layout.fmt_main) {
 
         val cameraPosition = CameraPosition.Builder()
             .target(LatLng(DEFAULT_LATITUDE, DEFAULT_LONGITUDE))
-            .zoom(16.0f)
+            .zoom(INITIAL_ZOOM)
             .build()
 
         val options = GoogleMapOptions()
@@ -49,10 +50,17 @@ class MainFragment : Fragment(R.layout.fmt_main) {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false
             override fun onQueryTextChange(newText: String?): Boolean {
-
+                mainViewModel.onQueryTextChange(newText)
                 return true
             }
         })
+
+        mainViewModel.subscribe()
+        mainViewModel.state().observe(viewLifecycleOwner, ::render)
+    }
+
+    private fun render(mainViewState: MainViewState) {
+
     }
 
     private fun mapReady(googleMap: GoogleMap) {
@@ -62,7 +70,7 @@ class MainFragment : Fragment(R.layout.fmt_main) {
 
     private fun onRegionChanged() {
         val mapRegion = map.projection.visibleRegion.let {
-            MapRegion(
+            RegionModel(
                 minLongitude = it.nearLeft.longitude,
                 minLatitude = it.nearLeft.latitude,
                 maxLongitude = it.farRight.longitude,
@@ -71,5 +79,9 @@ class MainFragment : Fragment(R.layout.fmt_main) {
         }
 
         mainViewModel.onRegionChanged(mapRegion)
+    }
+
+    private companion object {
+        private const val INITIAL_ZOOM = 16.0f
     }
 }

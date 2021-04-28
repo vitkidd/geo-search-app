@@ -1,6 +1,6 @@
-package com.github.vitkidd.geosearch.entity
+package com.github.vitkidd.geosearch.feature.presentation.model
 
-data class MapRegion(
+data class RegionModel(
     val minLongitude: Double,
     val minLatitude: Double,
     val maxLongitude: Double,
