@@ -30,7 +30,7 @@ internal class MainInteractorImplTest: BaseTest() {
 
     @Test
     fun searchPhotos_success() {
-        whenever(mainRepository.searchPhotos(any(), any())).thenReturn(Observable.just(searchResultDto.photos.photos))
+        whenever(mainRepository.searchPhotos(any(), any())).thenReturn(Observable.just(searchResultDto.photos.photo))
 
         interactor.searchPhotos(searchEntity).test().apply {
             assertSubscribed()

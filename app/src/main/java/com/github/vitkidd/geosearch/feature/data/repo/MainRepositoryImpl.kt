@@ -10,6 +10,6 @@ class MainRepositoryImpl(
 ) : MainRepository {
 
     override fun searchPhotos(query: String, region: String): Observable<List<PhotoDto>> {
-        return mainApi.search(query, region).map { it.photos.photos }.subscribeOn(Schedulers.io())
+        return mainApi.search(query, region).map { it.photos.photo }.subscribeOn(Schedulers.io())
     }
 }

@@ -3,7 +3,8 @@ package com.github.vitkidd.geosearch.feature.domain.entity
 data class PhotoEntity(
     val lat: Double,
     val lon: Double,
-    val url: String,
+    val urlSmall: String,
+    val urlMedium: String,
     val title: String,
-    val description: String
+    val tags: String
 )

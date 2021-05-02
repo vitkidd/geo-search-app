@@ -44,7 +44,10 @@ class MainViewModel(
                 if (it.isEmpty()) MainViewState.Empty
                 else MainViewState.Data(it.map(::toPhotoModel))
             }
-            .onErrorReturn { MainViewState.Error }
+            .onErrorReturn {
+                it.printStackTrace()
+                MainViewState.Error
+            }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 state.value = it
@@ -76,9 +79,10 @@ class MainViewModel(
         return PhotoModel(
             lat = photoEntity.lat,
             lon = photoEntity.lon,
-            url = photoEntity.url,
+            urlSmall = photoEntity.urlSmall,
+            urlMedium = photoEntity.urlMedium,
             title = photoEntity.title,
-            description = photoEntity.description
+            tags = photoEntity.tags
         )
     }
 

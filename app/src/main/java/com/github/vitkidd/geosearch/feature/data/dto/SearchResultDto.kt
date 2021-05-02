@@ -9,5 +9,5 @@ data class PhotosDto(
     val pages: Int,
     val perpage: Int,
     val total: String,
-    val photos: List<PhotoDto>
+    val photo: List<PhotoDto>
 )

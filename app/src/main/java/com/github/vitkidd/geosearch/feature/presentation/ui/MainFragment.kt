@@ -6,18 +6,22 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commitNow
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.bumptech.glide.Glide
 import com.github.vitkidd.geosearch.R
 import com.github.vitkidd.geosearch.databinding.FmtMainBinding
-import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LATITUDE
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LONGITUDE
 import com.github.vitkidd.geosearch.feature.presentation.model.MainViewState
+import com.github.vitkidd.geosearch.feature.presentation.model.PhotoModel
+import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewModel
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainFragment : Fragment(R.layout.fmt_main) {
@@ -60,12 +64,44 @@ class MainFragment : Fragment(R.layout.fmt_main) {
     }
 
     private fun render(mainViewState: MainViewState) {
+        when (mainViewState) {
+            is MainViewState.Data -> dataState(mainViewState)
+            MainViewState.Empty -> emptyState()
+            MainViewState.Error -> errorState()
+        }
+    }
 
+    private var targets = mutableListOf<MarkerTarget>()
+
+    private fun dataState(state: MainViewState.Data) {
+        clearMap()
+        targets.addAll(state.photos.map { MarkerTarget(map, it) })
+        targets.forEach(::getMarkerIcon)
+    }
+
+    private fun getMarkerIcon(target: MarkerTarget) {
+        Glide.with(requireContext())
+            .asBitmap()
+            .load(target.photoModel.urlSmall)
+            .into(target)
+    }
+
+    private fun emptyState() = clearMap()
+
+    private fun errorState() {
+        Snackbar.make(binding.main, R.string.error_search, Snackbar.LENGTH_SHORT)
+    }
+
+    private fun clearMap() {
+        targets.forEach { Glide.with(requireContext()).clear(it) }
+        targets.clear()
+        map.clear()
     }
 
     private fun mapReady(googleMap: GoogleMap) {
         map = googleMap
         map.setOnCameraIdleListener(::onRegionChanged)
+        map.setOnMarkerClickListener(::onMarkerClicked)
     }
 
     private fun onRegionChanged() {
@@ -79,6 +115,14 @@ class MainFragment : Fragment(R.layout.fmt_main) {
         }
 
         mainViewModel.onRegionChanged(mapRegion)
+    }
+
+    private fun onMarkerClicked(marker: Marker): Boolean {
+        (marker.tag as? PhotoModel)?.let {
+            PhotoDialog.show(childFragmentManager, it)
+        }
+
+        return true
     }
 
     private companion object {
