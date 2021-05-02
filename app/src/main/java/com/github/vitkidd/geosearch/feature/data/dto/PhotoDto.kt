@@ -6,5 +6,6 @@ data class PhotoDto(
     val secret: String,
     val title: String,
     val latitude: String,
-    val longitude: String
+    val longitude: String,
+    val tags: String
 )

@@ -31,7 +31,7 @@ internal class MainRepositoryImplTest: BaseTest() {
         repository.searchPhotos(query, region).test().apply {
             assertSubscribed()
             assertComplete()
-            assertValue(searchResultDto.photos.photos)
+            assertValue(searchResultDto.photos.photo)
             assertNoErrors()
         }
     }

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Geo Search</string>
+
+    <string name="title">Title</string>
+    <string name="tags">Tags</string>
+    <string name="error_search">Something went wrong. Please try again later.</string>
 </resources>

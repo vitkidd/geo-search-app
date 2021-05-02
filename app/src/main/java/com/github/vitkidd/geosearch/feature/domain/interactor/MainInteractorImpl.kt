@@ -21,9 +21,10 @@ class MainInteractorImpl(
                     PhotoEntity(
                         lat = dto.latitude.toDouble(),
                         lon = dto.longitude.toDouble(),
-                        url = "https://live.staticflickr.com/${dto.server}/${dto.id}_${dto.secret}_z.jpg",
+                        urlSmall = "https://live.staticflickr.com/${dto.server}/${dto.id}_${dto.secret}_s.jpg",
+                        urlMedium = "https://live.staticflickr.com/${dto.server}/${dto.id}_${dto.secret}_z.jpg",
                         title = dto.title,
-                        description = ""
+                        tags = dto.tags.replace(" ", ", ")
                     )
                 }
             }
