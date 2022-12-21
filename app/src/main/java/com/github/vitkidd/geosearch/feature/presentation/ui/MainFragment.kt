@@ -11,10 +11,13 @@ import com.github.vitkidd.geosearch.R
 import com.github.vitkidd.geosearch.databinding.FmtMainBinding
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LATITUDE
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_LONGITUDE
-import com.github.vitkidd.geosearch.feature.presentation.model.MainViewState
+import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewState
 import com.github.vitkidd.geosearch.feature.presentation.model.PhotoModel
 import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewModel
+import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnQueryTextChanged
+import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnRegionChanged
+import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnViewCreated
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.SupportMapFragment
@@ -54,13 +57,13 @@ class MainFragment : Fragment(R.layout.fmt_main) {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false
             override fun onQueryTextChange(newText: String?): Boolean {
-                mainViewModel.onQueryTextChange(newText)
+                mainViewModel.onViewEvent(OnQueryTextChanged(newText))
                 return true
             }
         })
 
-        mainViewModel.subscribe()
-        mainViewModel.state().observe(viewLifecycleOwner, ::render)
+        mainViewModel.onViewEvent(OnViewCreated)
+        mainViewModel.state.observe(viewLifecycleOwner, ::render)
     }
 
     private fun render(mainViewState: MainViewState) {
@@ -104,17 +107,17 @@ class MainFragment : Fragment(R.layout.fmt_main) {
         map.setOnMarkerClickListener(::onMarkerClicked)
     }
 
-    private fun onRegionChanged() {
-        val mapRegion = map.projection.visibleRegion.let {
-            RegionModel(
-                minLongitude = it.nearLeft.longitude,
-                minLatitude = it.nearLeft.latitude,
-                maxLongitude = it.farRight.longitude,
-                maxLatitude = it.farRight.latitude
+    private fun onRegionChanged() = with(map.projection.visibleRegion) {
+        mainViewModel.onViewEvent(
+            OnRegionChanged(
+                RegionModel(
+                    minLongitude = nearLeft.longitude,
+                    minLatitude = nearLeft.latitude,
+                    maxLongitude = farRight.longitude,
+                    maxLatitude = farRight.latitude,
+                )
             )
-        }
-
-        mainViewModel.onRegionChanged(mapRegion)
+        )
     }
 
     private fun onMarkerClicked(marker: Marker): Boolean {

@@ -5,12 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_QUERY
-import com.github.vitkidd.geosearch.feature.domain.entity.PhotoEntity
-import com.github.vitkidd.geosearch.feature.domain.entity.RegionEntity
 import com.github.vitkidd.geosearch.feature.domain.interactor.MainInteractor
-import com.github.vitkidd.geosearch.feature.presentation.model.MainViewState
 import com.github.vitkidd.geosearch.feature.domain.entity.SearchEntity
-import com.github.vitkidd.geosearch.feature.presentation.model.PhotoModel
+import com.github.vitkidd.geosearch.feature.presentation.mapper.PhotoModelMapper
+import com.github.vitkidd.geosearch.feature.presentation.mapper.RegionEntityMapper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -18,31 +16,44 @@ import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
 
 class MainViewModel(
-    private val mainInteractor: MainInteractor
+    private val mainInteractor: MainInteractor,
+    private val photoModelMapper: PhotoModelMapper,
+    private val regionEntityMapper: RegionEntityMapper,
 ) : ViewModel() {
 
     private val querySubject = BehaviorSubject.createDefault(DEFAULT_QUERY)
     private val regionSubject = BehaviorSubject.create<RegionModel>()
-    private val state = MutableLiveData<MainViewState>()
     private var subscription: Disposable? = null
+    private val _state = MutableLiveData<MainViewState>()
+    val state: LiveData<MainViewState> get() = _state
 
     override fun onCleared() = subscription?.dispose() ?: Unit
 
-    fun onQueryTextChange(query: String?) = querySubject.onNext(query ?: DEFAULT_QUERY)
+    fun onViewEvent(event: MainViewEvent) {
+        when (event) {
+            is OnQueryTextChanged -> handleQueryChanged(event)
+            is OnRegionChanged -> handleRegionChanged(event)
+            OnViewCreated -> subscribe()
+        }
+    }
 
-    fun onRegionChanged(regionModel: RegionModel) = regionSubject.onNext(regionModel)
+    private fun handleQueryChanged(event: OnQueryTextChanged) {
+        querySubject.onNext(event.query ?: DEFAULT_QUERY)
+    }
 
-    fun state(): LiveData<MainViewState> = state
+    private fun handleRegionChanged(event: OnRegionChanged) {
+        regionSubject.onNext(event.regionModel)
+    }
 
-    fun subscribe() {
+    private fun subscribe() {
         subscription = Observable.combineLatest(
             searchObservable(),
             regionObservable()
-        ) { query, region -> SearchEntity(query, toRegionEntity(region)) }
+        ) { query, region -> SearchEntity(query, regionEntityMapper.map(region)) }
             .switchMap(mainInteractor::searchPhotos)
             .map {
                 if (it.isEmpty()) MainViewState.Empty
-                else MainViewState.Data(it.map(::toPhotoModel))
+                else MainViewState.Data(it.map(photoModelMapper::map))
             }
             .onErrorReturn {
                 it.printStackTrace()
@@ -50,7 +61,7 @@ class MainViewModel(
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                state.value = it
+                _state.value = it
             }
     }
 
@@ -64,26 +75,6 @@ class MainViewModel(
         return regionSubject
             .distinctUntilChanged()
             .debounce { Observable.timer(REGION_DELAY, TimeUnit.MILLISECONDS) }
-    }
-
-    private fun toRegionEntity(regionModel: RegionModel): RegionEntity {
-        return RegionEntity(
-            minLongitude = regionModel.minLongitude,
-            minLatitude = regionModel.minLatitude,
-            maxLongitude = regionModel.maxLongitude,
-            maxLatitude = regionModel.maxLatitude
-        )
-    }
-
-    private fun toPhotoModel(photoEntity: PhotoEntity): PhotoModel {
-        return PhotoModel(
-            lat = photoEntity.lat,
-            lon = photoEntity.lon,
-            urlSmall = photoEntity.urlSmall,
-            urlMedium = photoEntity.urlMedium,
-            title = photoEntity.title,
-            tags = photoEntity.tags
-        )
     }
 
     private companion object {
