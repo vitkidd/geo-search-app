@@ -3,10 +3,12 @@ package com.github.vitkidd.geosearch.feature.domain.interactor
 import com.github.vitkidd.geosearch.feature.domain.entity.PhotoEntity
 import com.github.vitkidd.geosearch.feature.data.repo.MainRepository
 import com.github.vitkidd.geosearch.feature.domain.entity.SearchEntity
+import com.github.vitkidd.geosearch.feature.domain.mapper.PhotoEntityMapper
 import io.reactivex.Observable
 
 class MainInteractorImpl(
-    private val mainRepository: MainRepository
+    private val mainRepository: MainRepository,
+    private val photoEntityMapper: PhotoEntityMapper,
 ) : MainInteractor {
 
     override fun searchPhotos(searchEntity: SearchEntity): Observable<List<PhotoEntity>> {
@@ -16,17 +18,6 @@ class MainInteractorImpl(
 
         return mainRepository
             .searchPhotos(searchEntity.query, region)
-            .map {
-                it.map { dto ->
-                    PhotoEntity(
-                        lat = dto.latitude.toDouble(),
-                        lon = dto.longitude.toDouble(),
-                        urlSmall = "https://live.staticflickr.com/${dto.server}/${dto.id}_${dto.secret}_s.jpg",
-                        urlMedium = "https://live.staticflickr.com/${dto.server}/${dto.id}_${dto.secret}_z.jpg",
-                        title = dto.title,
-                        tags = dto.tags.replace(" ", ", ")
-                    )
-                }
-            }
+            .map { it.map(photoEntityMapper::map) }
     }
 }

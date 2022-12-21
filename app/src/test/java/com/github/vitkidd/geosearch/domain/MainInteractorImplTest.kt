@@ -3,6 +3,7 @@ package com.github.vitkidd.geosearch.domain
 import com.github.vitkidd.geosearch.BaseTest
 import com.github.vitkidd.geosearch.feature.data.repo.MainRepository
 import com.github.vitkidd.geosearch.feature.domain.interactor.MainInteractorImpl
+import com.github.vitkidd.geosearch.feature.domain.mapper.PhotoEntityMapper
 import com.github.vitkidd.geosearch.photoEntities
 import com.github.vitkidd.geosearch.searchEntity
 import com.github.vitkidd.geosearch.searchResultDto
@@ -16,6 +17,7 @@ internal class MainInteractorImplTest: BaseTest() {
 
     private lateinit var interactor: MainInteractorImpl
     private val mainRepository: MainRepository = mock()
+    private val photoEntityMapper = PhotoEntityMapper()
     private val region = "4.63144775480032,52.376537420804254,4.640275910496712,52.38637202434913"
     private val query = "motorcycle"
     private val searchEntity = searchEntity()
@@ -25,7 +27,7 @@ internal class MainInteractorImplTest: BaseTest() {
     override fun setUp() {
         super.setUp()
 
-        interactor = MainInteractorImpl(mainRepository)
+        interactor = MainInteractorImpl(mainRepository, photoEntityMapper)
     }
 
     @Test

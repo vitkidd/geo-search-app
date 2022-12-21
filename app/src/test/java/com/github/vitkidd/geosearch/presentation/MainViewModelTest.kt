@@ -4,11 +4,8 @@ import com.github.vitkidd.geosearch.BaseTest
 import com.github.vitkidd.geosearch.feature.domain.interactor.MainInteractor
 import com.github.vitkidd.geosearch.feature.presentation.mapper.PhotoModelMapper
 import com.github.vitkidd.geosearch.feature.presentation.mapper.RegionEntityMapper
-import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewState
-import com.github.vitkidd.geosearch.feature.presentation.viewModel.MainViewModel
-import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnQueryTextChanged
-import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnRegionChanged
-import com.github.vitkidd.geosearch.feature.presentation.viewModel.OnViewCreated
+import com.github.vitkidd.geosearch.feature.presentation.mapper.SearchEntityMapper
+import com.github.vitkidd.geosearch.feature.presentation.viewModel.*
 import com.github.vitkidd.geosearch.photoEntities
 import com.github.vitkidd.geosearch.photoModels
 import com.github.vitkidd.geosearch.regionModel
@@ -25,6 +22,7 @@ internal class MainViewModelTest : BaseTest() {
     private val mainInteractor: MainInteractor = mock()
     private val photoModelMapper = PhotoModelMapper()
     private val regionEntityMapper = RegionEntityMapper()
+    private val searchEntityMapper = SearchEntityMapper(regionEntityMapper)
     private val photoEntities = photoEntities()
     private val regionModel = regionModel()
     private val query = "Motorcycles"
@@ -32,7 +30,7 @@ internal class MainViewModelTest : BaseTest() {
     override fun setUp() {
         super.setUp()
 
-        mainViewModel = MainViewModel(mainInteractor, photoModelMapper, regionEntityMapper)
+        mainViewModel = MainViewModel(mainInteractor, photoModelMapper, searchEntityMapper)
         mainViewModel.onViewEvent(OnViewCreated)
     }
 
@@ -46,7 +44,7 @@ internal class MainViewModelTest : BaseTest() {
 
         val stateValue = mainViewModel.state.value
 
-        assertThat(stateValue).isInstanceOf(MainViewState.Error::class.java)
+        assertThat(stateValue).isInstanceOf(ErrorState::class.java)
         assertThat(stateValue).isNotNull
     }
 
@@ -59,7 +57,7 @@ internal class MainViewModelTest : BaseTest() {
 
         val stateValue = mainViewModel.state.value
 
-        assertThat(stateValue).isInstanceOf(MainViewState.Empty::class.java)
+        assertThat(stateValue).isInstanceOf(EmptyState::class.java)
         assertThat(stateValue).isNotNull
     }
 
@@ -72,8 +70,8 @@ internal class MainViewModelTest : BaseTest() {
 
         val stateValue = mainViewModel.state.value
 
-        assertThat(stateValue).isInstanceOf(MainViewState.Data::class.java)
-        assertThat((stateValue as? MainViewState.Data)?.photos).isEqualTo(photoModels())
+        assertThat(stateValue).isInstanceOf(DataState::class.java)
+        assertThat((stateValue as? DataState)?.photos).isEqualTo(photoModels())
         assertThat(stateValue).isNotNull
     }
 }

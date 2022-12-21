@@ -3,12 +3,11 @@ package com.github.vitkidd.geosearch.feature.presentation.viewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import com.github.vitkidd.geosearch.feature.di.DEFAULT_QUERY
 import com.github.vitkidd.geosearch.feature.domain.interactor.MainInteractor
-import com.github.vitkidd.geosearch.feature.domain.entity.SearchEntity
 import com.github.vitkidd.geosearch.feature.presentation.mapper.PhotoModelMapper
-import com.github.vitkidd.geosearch.feature.presentation.mapper.RegionEntityMapper
+import com.github.vitkidd.geosearch.feature.presentation.mapper.SearchEntityMapper
+import com.github.vitkidd.geosearch.feature.presentation.model.RegionModel
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -18,7 +17,7 @@ import java.util.concurrent.TimeUnit
 class MainViewModel(
     private val mainInteractor: MainInteractor,
     private val photoModelMapper: PhotoModelMapper,
-    private val regionEntityMapper: RegionEntityMapper,
+    private val searchEntityMapper: SearchEntityMapper,
 ) : ViewModel() {
 
     private val querySubject = BehaviorSubject.createDefault(DEFAULT_QUERY)
@@ -49,15 +48,15 @@ class MainViewModel(
         subscription = Observable.combineLatest(
             searchObservable(),
             regionObservable()
-        ) { query, region -> SearchEntity(query, regionEntityMapper.map(region)) }
+        ) { query, region -> searchEntityMapper.map(query, region) }
             .switchMap(mainInteractor::searchPhotos)
             .map {
-                if (it.isEmpty()) MainViewState.Empty
-                else MainViewState.Data(it.map(photoModelMapper::map))
+                if (it.isEmpty()) EmptyState
+                else DataState(it.map(photoModelMapper::map))
             }
             .onErrorReturn {
                 it.printStackTrace()
-                MainViewState.Error
+                ErrorState
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
